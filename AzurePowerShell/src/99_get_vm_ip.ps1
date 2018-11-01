@@ -1,7 +1,7 @@
 ﻿########################################################################
-#
+# Date : 2018-11-01
 # Get VM's IP Address
-#
+# 
 ########################################################################
 function PCW-Get-AzureVMPublicIP {
     Param ([String] $resourceGroup)
@@ -77,7 +77,7 @@ function PCW-Get-AzureVmPrivateIP {
                 if ($vm.Id -match $nic.VirtualMachine.Id) {
                     $ourObject = New-Object -TypeName psobject 
                     $ourObject | Add-Member -MemberType NoteProperty -Name VmName -Value $vm.Name
-                    $ourObject | Add-Member -MemberType NoteProperty -Name PublicIP -Value $nic.IpConfigurations.PrivateIpAddress
+                    $ourObject | Add-Member -MemberType NoteProperty -Name PrivateIP -Value $nic.IpConfigurations.PrivateIpAddress
                     $array += $ourObject
                 }
             }
@@ -91,7 +91,7 @@ function PCW-Get-AzureVmPrivateIP {
                 if ($vm.Id -match $nic.VirtualMachine.Id) {
                     $ourObject = New-Object -TypeName psobject 
                     $ourObject | Add-Member -MemberType NoteProperty -Name VmName -Value $vm.Name
-                    $ourObject | Add-Member -MemberType NoteProperty -Name PublicIP -Value $nic.IpConfigurations.PrivateIpAddress
+                    $ourObject | Add-Member -MemberType NoteProperty -Name PrivateIP -Value $nic.IpConfigurations.PrivateIpAddress
                     $array += $ourObject
                 }
             }
