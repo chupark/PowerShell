@@ -27,8 +27,15 @@ function PCW-Get-AzureVMPublicIP {
                 $ip = $ipconfigs.IpAddress
                 if ($nic -match $pubIpNIC) {
                     $ourObject = New-Object -TypeName psobject 
+                    $ourObject | Add-Member -MemberType NoteProperty -Name ResourceGroup -Value $vm.ResourceGroupName
                     $ourObject | Add-Member -MemberType NoteProperty -Name VmName -Value $vm.Name
                     $ourObject | Add-Member -MemberType NoteProperty -Name PublicIP -Value $ip
+                    if($vm.OSProfile.WindowsConfiguration -ne $null) {
+                        $ourObject | Add-Member -MemberType NoteProperty -Name Os -Value "windows"
+                    } elseif ($vm.OSProfile.LinuxConfiguration -ne $null) {
+                        $ourObject | Add-Member -MemberType NoteProperty -Name Os -Value "linux"
+                    }
+                    $ourObject | Add-Member -MemberType NoteProperty -Name Location -Value $vm.Location
                     $array += $ourObject
                     break;
                 }
@@ -55,8 +62,15 @@ function PCW-Get-AzureVMPublicIP {
                 $ip = $ipconfigs.IpAddress
                 if ($nic -match $pubIpNIC) {
                     $ourObject = New-Object -TypeName psobject 
+                    $ourObject | Add-Member -MemberType NoteProperty -Name ResourceGroup -Value $vm.ResourceGroupName
                     $ourObject | Add-Member -MemberType NoteProperty -Name VmName -Value $vm.Name
                     $ourObject | Add-Member -MemberType NoteProperty -Name PublicIP -Value $ip
+                    if($vm.OSProfile.WindowsConfiguration -ne $null) {
+                        $ourObject | Add-Member -MemberType NoteProperty -Name Os -Value "windows"
+                    } elseif ($vm.OSProfile.LinuxConfiguration -ne $null) {
+                        $ourObject | Add-Member -MemberType NoteProperty -Name Os -Value "linux"
+                    }
+                    $ourObject | Add-Member -MemberType NoteProperty -Name Location -Value $vm.Location
                     $array += $ourObject
                     break;
                 }
@@ -76,8 +90,15 @@ function PCW-Get-AzureVmPrivateIP {
             ForEach ($nic in $nics) {
                 if ($vm.Id -match $nic.VirtualMachine.Id) {
                     $ourObject = New-Object -TypeName psobject 
+                    $ourObject | Add-Member -MemberType NoteProperty -Name ResourceGroup -Value $vm.ResourceGroupName
                     $ourObject | Add-Member -MemberType NoteProperty -Name VmName -Value $vm.Name
                     $ourObject | Add-Member -MemberType NoteProperty -Name PrivateIP -Value $nic.IpConfigurations.PrivateIpAddress
+                    if($vm.OSProfile.WindowsConfiguration -ne $null) {
+                        $ourObject | Add-Member -MemberType NoteProperty -Name Os -Value "windows"
+                    } elseif ($vm.OSProfile.LinuxConfiguration -ne $null) {
+                        $ourObject | Add-Member -MemberType NoteProperty -Name Os -Value "linux"
+                    }
+                    $ourObject | Add-Member -MemberType NoteProperty -Name Location -Value $vm.Location
                     $array += $ourObject
                 }
             }
@@ -90,8 +111,15 @@ function PCW-Get-AzureVmPrivateIP {
             ForEach ($nic in $nics) {
                 if ($vm.Id -match $nic.VirtualMachine.Id) {
                     $ourObject = New-Object -TypeName psobject 
+                    $ourObject | Add-Member -MemberType NoteProperty -Name ResourceGroup -Value $vm.ResourceGroupName
                     $ourObject | Add-Member -MemberType NoteProperty -Name VmName -Value $vm.Name
                     $ourObject | Add-Member -MemberType NoteProperty -Name PrivateIP -Value $nic.IpConfigurations.PrivateIpAddress
+                    if($vm.OSProfile.WindowsConfiguration -ne $null) {
+                        $ourObject | Add-Member -MemberType NoteProperty -Name Os -Value "windows"
+                    } elseif ($vm.OSProfile.LinuxConfiguration -ne $null) {
+                        $ourObject | Add-Member -MemberType NoteProperty -Name Os -Value "linux"
+                    }
+                    $ourObject | Add-Member -MemberType NoteProperty -Name Location -Value $vm.Location
                     $array += $ourObject
                 }
             }
