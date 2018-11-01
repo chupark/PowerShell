@@ -2,10 +2,9 @@
 
 <br>
 
-## PCW-Get-AzureVMPublicIP[-resourceGroupName] <String>
+## Required
     
 ````yaml
-Required
 Import AzureRM Module
 ````
 
