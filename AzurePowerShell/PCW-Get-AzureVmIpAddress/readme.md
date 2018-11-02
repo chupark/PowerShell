@@ -31,7 +31,7 @@ MyRG01          VM-DEF      10.0.2.6          linux       eastus
 
 <br>
 
-## Parameters
+## Optional Parameters
 ### -resourceGroupName
 ```yaml
 Type: String
