@@ -6,6 +6,7 @@
     
 ````yaml
 Import AzureRM Module
+Add-AzureRmAccount
 ````
 <br>
 
