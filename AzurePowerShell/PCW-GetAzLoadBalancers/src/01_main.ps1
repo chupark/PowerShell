@@ -1,12 +1,21 @@
+# Import Module
 $location = (Get-Location).Path
 Import-module -Name "$location\src\library\tools.psm1"
 
-$col=@("lbName", "lbKind", "frontEndIP", "backEndPoolName", "backEndPool", "probeRule", "ruleProto", "rulePort")
+# Making Data Table
+$col=@("num", "lbName", "lbKind", "frontEndIP", "backEndPoolName", "backEndPool", "probeRule", "ruleProto", "rulePort")
 $table = MakeTable "test" $col
 
+# Get Row Data
 $lbList = Get-AzLoadBalancer
 $vms=Get-AzVM
 
+# Output Data
+$exportFileName = "loadBalancer.csv"
+$exportFilePath = "C:\Users\" + $env:USERNAME + "\" + $exportFileName
+
+# Global Variable
+$countnum = 1
 
 foreach ($lb in $lbList) {
     $lbName = $lb.Name
@@ -24,7 +33,6 @@ foreach ($lb in $lbList) {
     foreach ($lbRule in $lb.LoadBalancingRules) {
         $backendPool = ""
         $FrontIPId = ($lbRule.FrontendIPConfiguration.Id | Select-String  $lbList.FrontendIpConfigurations.Id).ToString()
-
         ## Searching for FrontEndIP
         foreach ($fronttmp in $lb.FrontendIpConfigurations) {
             #$fronttmp
@@ -59,6 +67,7 @@ foreach ($lb in $lbList) {
         $rulePort = [String]$lbRule.FrontendPort + " => " + [String]$lbRule.BackendPort
         
         $row = $table.NewRow()
+        $row.num = $countnum
         $row.lbName = $lbName
         $row.lbKind = $lbKind
         $row.frontEndIP = $frontEndIP
@@ -68,7 +77,9 @@ foreach ($lb in $lbList) {
         $row.ruleProto = $ruleProtocol
         $row.rulePort = $rulePort
         $table.Rows.Add($row)
+
+        $countnum++
     }
 }
 
-$table
+$table | Export-Csv $exportFilePath -NoTypeInformation
