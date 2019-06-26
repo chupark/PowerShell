@@ -30,6 +30,7 @@ foreach ($lb in $lbList) {
         $lbKind = "public"
         $lbIPS = "public"
     }
+    
     foreach ($lbRule in $lb.LoadBalancingRules) {
         $backendPool = ""
         $FrontIPId = ($lbRule.FrontendIPConfiguration.Id | Select-String  $lbList.FrontendIpConfigurations.Id).ToString()
