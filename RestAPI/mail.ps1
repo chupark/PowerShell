@@ -1,0 +1,1 @@
+Send-MailMessage -To "cwpark@zenithn.com" -Subject "Scheduled Event" -Body "Hello" -From "cwpark@zenithn.com" -SmtpServer 'mail.zenithn.com'

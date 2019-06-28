@@ -31,6 +31,10 @@ foreach ($lb in $lbList) {
         $lbIPS = "public"
     }
     
+    if ($lbList.FrontendIpConfigurations.LoadBalancingRules.Length -eq 0) {
+
+    }
+
     foreach ($lbRule in $lb.LoadBalancingRules) {
         $backendPool = ""
         $FrontIPId = ($lbRule.FrontendIPConfiguration.Id | Select-String  $lbList.FrontendIpConfigurations.Id).ToString()
@@ -82,5 +86,6 @@ foreach ($lb in $lbList) {
         $countnum++
     }
 }
+
 
 $table | Export-Csv $exportFilePath -NoTypeInformation

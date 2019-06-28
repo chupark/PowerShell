@@ -46,10 +46,7 @@ foreach ($lb in $lbList) {
     foreach ($lbFront in $lb.FrontendIpConfigurations) {
         foreach ($lbBalancingRuleId in $lbFront.LoadBalancingRules.Id) {
             if ($lb.LoadBalancingRules.Id -eq $lbBalancingRuleId) {
-                foreach ($lbRule in $lb.LoadBalancingRules) {
-                    $lbRule.Name
-                    $lbRule.BackendAddressPool
-                }
+                Write-Host $lbRule.BackendAddressPool.Id
             }
         }
     }
