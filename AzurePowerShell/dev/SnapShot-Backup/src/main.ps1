@@ -1,5 +1,6 @@
-Import-Module -Name D:\PowerShell\PowerShell\AzurePowerShell\production\SnapShot-Backup\src\library\tools.psm1 -Force
-Import-Module -Name D:\PowerShell\PowerShell\AzurePowerShell\production\SnapShot-Backup\src\library\snapshotlib.psm1 -Force
+Import-Module -Name D:\PowerShell\PowerShell\AzurePowerShell\dev\SnapShot-Backup\src\library\tools.psm1 -Force
+Import-Module -Name D:\PowerShell\PowerShell\AzurePowerShell\dev\SnapShot-Backup\src\library\snapshotlib.psm1 -Force
+## ------------------------------------------- you should change here ↓↓↓↓↓↓↓↓↓
 $storageConfig = Get-Content -Raw -Path "D:\PowerShell\carrot\carrot_storage.json" | ConvertFrom-Json
 ## Variables
 [String]$inputResourceGroup = $null
@@ -19,7 +20,6 @@ $storageConfig = Get-Content -Raw -Path "D:\PowerShell\carrot\carrot_storage.jso
 ## Input VM Resource Group
 Write-Host 'Please enter the ResourceGroup Name' -ForegroundColor "Green" -NoNewline
 $inputResourceGroup = Read-Host " "
-
 $loadedVMs = Get-AzVM -ResourceGroupName $inputResourceGroup
 Write-Host $loadedVMs.Name
 
@@ -27,7 +27,6 @@ Write-Host $loadedVMs.Name
 Write-Host 'Please enter the VM Name' -ForegroundColor "Green" -NoNewline
 $inputVM = Read-Host " "
 $vmList = $inputVM.Replace(" ", "").Split(',')
-
 $selectedVM = $loadedVMs | Where-Object {$_.Name -eq $vmList}
 Write-Host $selectedVM.name
 
@@ -93,10 +92,15 @@ if ($takeSnapShot -eq "y") {
 }
 
 $snapshotTable = makeSnapShotTable $snapShotNames
-sendToBlob $snapshotTable $storageConfig
+sendToBlob $snapshotTable $storageConfig 86400 "test"
 
-
-Get-AzStorageBlob -Blob $storageConfig.storageAccountName -Container $storageConfig.storageContainerName | Get-AzStorageBlobCopyState
 
 $storageContext = New-AzStorageContext -StorageAccountName $storageConfig.storageAccountName -StorageAccountKey $storageConfig.storageAccountKey
-Get-AzStorageBlob -Context $storageContext -Container "test" | Get-AzStorageBlobCopyState
+$blobCopyStates = Get-AzStorageBlob -Context $storageContext -Container "test" | Get-AzStorageBlobCopyState
+foreach ($blobCopyState in $blobCopyStates) {
+    if ($blobCopyState.Status -eq "Success") {
+        Wrote-Host " ho"
+    } else {
+        Wrote-Host "nononono"
+    }
+}

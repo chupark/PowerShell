@@ -1,0 +1,4 @@
+{
+    "storageAccountName" : "<your-sa-name>",
+    "storageAccountKey" : "<your-sa-key>"
+}
