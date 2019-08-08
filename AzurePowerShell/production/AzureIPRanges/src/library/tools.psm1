@@ -12,7 +12,6 @@ Function MakeTable ($TableName, $ColumnArray) {
 }
 
 # by me cwpark!
-
 function findVMNameWithNICName ([String]$nicName, $inputVMS) {
     foreach ($inputVm in $inputVMS) {
         foreach ($nic in $inputVm.NetworkProfile.NetworkInterfaces.Id) {

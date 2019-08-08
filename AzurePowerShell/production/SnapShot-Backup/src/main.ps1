@@ -1,4 +1,6 @@
-Import-Module -Name D:\PowerShell\PowerShell\AzurePowerShell\SnapShot-Backup\src\library\tools.psm1 -Force
+Import-Module -Name D:\PowerShell\PowerShell\AzurePowerShell\production\SnapShot-Backup\src\library\tools.psm1 -Force
+Import-Module -Name D:\PowerShell\PowerShell\AzurePowerShell\production\SnapShot-Backup\src\library\snapshotlib.psm1 -Force
+$storageConfig = Get-Content -Raw -Path "D:\PowerShell\carrot\carrot_storage.json" | ConvertFrom-Json
 ## Variables
 [String]$inputResourceGroup = $null
 [Array]$loadedVMs = $null
@@ -72,7 +74,7 @@ if($isOsDiskWillTakeShapshot) {
 
 Write-Host
 
-Write-Host 'Select the ResourceGroup for snapshots' -ForegroundColor "Green" -NoNewline
+Write-Host 'Select the ResourceGroup for storing snapshots' -ForegroundColor "Green" -NoNewline
 $snapshotResourceGroupName = Read-Host " "
 
 
@@ -83,48 +85,18 @@ Write-Host "[Resource Group for Save] : " $snapshotResourceGroupName -Foreground
 Write-Host 'Continue??  [ Yes y / No else ]' -ForegroundColor "Green" -NoNewline
 $takeSnapShot = Read-Host " "
 
+
 if ($takeSnapShot -eq "y") {
-    # $snapShotNames = makeSnapshot $diskNamesForSnapshot $selectedVM $snapshotResourceGroupName
+    $snapShotNames = makeSnapshot $diskNamesForSnapshot $selectedVM $snapshotResourceGroupName
 } else {
     return
 }
 
-foreach ($snapshotName in $snapshotNames.split(" ")) {
-    Get-AzSnapshot -ResourceGroupName $snapshotResourceGroupName -SnapshotName  $snapshotName
-    $row = $table.NewRow()
-}
+$snapshotTable = makeSnapShotTable $snapShotNames
+sendToBlob $snapshotTable $storageConfig
 
-foreach ($osSnapShot in $osSnapShot) {
-    $row = $table.NewRow()
-    $aa = $snapshot.CreationData.SourceResourceId -match "/Microsoft.Compute/disks/(?<diskName>.+)"
-    $disk = $Matches.diskName
-    if($snapshot.Name -match "BackupSnapshot-") {
-        
-        $row.ResourceGroupName = $snapshot.ResourceGroupName
-        $row.SnapShotName = $snapshot.Name
-        $row.FromDisk = $disk
-        $table.rows.add($row)
-    }
-}
 
-foreach ($sourceBlob in $table) {
-    $snapshotResourceGroupName = $sourceBlob.ResourceGroupName
-    $snapShotName = $sourceBlob.SnapShotName
-    $sasExpiryDuration = "86400"
-    $storageAccountName = "cgibackupsnapshot"
-    $storageContainerName = "backup-snapshots"
-    $storageAccountKey = ""
-    $destinationVHDFileName = $sourceBlob.FromDisk + ".vhd"
-    $sas = Grant-AzSnapshotAccess -ResourceGroupName $snapshotResourceGroupName `
-                                  -SnapshotName $snapShotName `
-                                  -DurationInSecond $sasExpiryDuration `
-                                  -Access Read
-    
-    $destinationContext = New-AzStorageContext -StorageAccountName $storageAccountName `
-                                               -StorageAccountKey $storageAccountKey
-    
-    Start-AzStorageBlobCopy -AbsoluteUri $sas.AccessSAS `
-                            -DestContainer $storageContainerName `
-                            -DestContext $destinationContext `
-                            -DestBlob $destinationVHDFileName    
-}
+Get-AzStorageBlob -Blob $storageConfig.storageAccountName -Container $storageConfig.storageContainerName | Get-AzStorageBlobCopyState
+
+$storageContext = New-AzStorageContext -StorageAccountName $storageConfig.storageAccountName -StorageAccountKey $storageConfig.storageAccountKey
+Get-AzStorageBlob -Context $storageContext -Container "test" | Get-AzStorageBlobCopyState
