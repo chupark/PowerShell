@@ -86,21 +86,36 @@ $takeSnapShot = Read-Host " "
 
 
 if ($takeSnapShot -eq "y") {
+    ## Taking Managed Disk Snapshots
+    <#
+    @@ param [array] DiskNames, 
+             [object] AzureVM,
+             [String] SnapshotResourceGroup
+    #>
     $snapShotNames = makeSnapshot $diskNamesForSnapshot $selectedVM $snapshotResourceGroupName
 } else {
     return
 }
 
-$snapshotTable = makeSnapShotTable $snapShotNames
-sendToBlob $snapshotTable $storageConfig 86400 "test"
+$snapshotTable = makeSnapShotTable -snapshotNames $snapShotNames
 
-
+## Send Snapshots To Blob
+sendToBlob -snapshotTable $snapshotTable -destinationBlobInfo $storageConfig
 $storageContext = New-AzStorageContext -StorageAccountName $storageConfig.storageAccountName -StorageAccountKey $storageConfig.storageAccountKey
-$blobCopyStates = Get-AzStorageBlob -Context $storageContext -Container "test" | Get-AzStorageBlobCopyState
+$blobCopyStates = Get-AzStorageBlob -Context $storageContext -Container $storageConfig.storageContainerName | Get-AzStorageBlobCopyState
+
+<#
 foreach ($blobCopyState in $blobCopyStates) {
     if ($blobCopyState.Status -eq "Success") {
-        Wrote-Host " ho"
+        #$blobCopyState.Source
+        
     } else {
-        Wrote-Host "nononono"
+        Write-Host Not-Completed
     }
 }
+
+$sss = Get-AzSnapshot -ResourceGroupName $snapshotTable[0].ResourceGroupName -SnapshotName $snapshotTable[0].SnapShotName
+$blobCopyState.Source
+
+Get-AzSnapshot | Revoke-AzSnapshotAccess
+#>

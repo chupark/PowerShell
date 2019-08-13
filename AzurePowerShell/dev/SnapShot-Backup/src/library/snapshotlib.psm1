@@ -18,6 +18,9 @@ function makeSnapshot() {
 
 
 function makeSnapShotTable() {
+    param (
+        $snapshotNames
+    )
     $col = @("ResourceGroupName", "SnapShotName", "FromDisk")
     $snapshotTable = MakeTable "snapShots" $col
     $allSnapshots = Get-AzSnapshot -ResourceGroupName $snapshotResourceGroupName
@@ -47,7 +50,7 @@ function sendToBlob() {
         $snapShotName = $snapshotBlob.SnapShotName
         $storageAccountName = $destinationBlobInfo.storageAccountName
         $storageAccountKey = $destinationBlobInfo.storageAccountKey
-        $destinationVHDFileName = $snapshotBlob.FromDisk + ".vhd"
+        $destinationVHDFileName = $snapshotBlob.SnapShotName + ".vhd"
                 
         $sas = Grant-AzSnapshotAccess -ResourceGroupName $snapshotResourceGroupName `
                                       -SnapshotName $snapShotName `
