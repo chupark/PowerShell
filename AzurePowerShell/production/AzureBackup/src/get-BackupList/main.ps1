@@ -12,10 +12,9 @@ $col = @(
 )
 
 $vms=Get-AzVM
-
 $backupListTable = MakeTable "backupList" $col
-
 $vaults = Get-AzRecoveryServicesVault
+
 foreach ($vault in $vaults) {
     $containers=Get-AzRecoveryServicesBackupContainer -VaultId $vault.ID -ContainerType "AzureVM"    
     foreach ($container in $containers) {
@@ -42,5 +41,6 @@ foreach ($vault in $vaults) {
         $backupListTable.Rows.Add($row)
     }
 }
+
 $redundancy = Get-AzRecoveryServicesBackupProperties -Vault $vault
 $backupListTable | Export-Csv "backupVMs.csv" -NoTypeInformation
