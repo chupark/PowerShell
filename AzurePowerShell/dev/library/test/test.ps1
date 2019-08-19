@@ -7,6 +7,7 @@ function resourceKind() {
     param(
         [String]$resourceId
     )
+    Import-Module -Name "D:\PowerShell\PowerShell\AzurePowerShell\dev\library\tools.psm1" -Force
     $Matches = $null
     $col = @("module", "resourceKind", "resourceGroup", "resourceName")
     $resourceTable = MakeTable -TableName "resourceTable" -ColumnArray $col

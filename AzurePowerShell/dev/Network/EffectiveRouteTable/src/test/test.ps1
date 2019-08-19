@@ -1,6 +1,17 @@
-$Matches = $null
+Import-Module -Name D:\PowerShell\PowerShell\AzurePowerShell\dev\library\tools.psm1 -Force
 $vms = Get-AzVM
-$vm = $vms | Where-Object {$_.Name -match "P-clustermgr1"}
-$nicId = $vm.NetworkProfile.NetworkInterfaces[0].Id
-$nic = Get-AzNetworkInterface -ResourceId $nicId
-$routeTable = Get-AzEffectiveRouteTable -ResourceGroupName $nic.ResourceGroupName -NetworkInterfaceName $nic.Name
+$resourceTable = $null
+$routeTable = $null
+
+foreach ($vm in $vms) {
+    foreach ($tmpNicId in $vm.NetworkProfile.NetworkInterfaces) {
+        $resourceTable += resourceKind -resourceId $tmpNicId.Id
+    }
+}
+
+foreach ($rsTable in $resourceTable) {
+    $routeTable += Get-AzEffectiveRouteTable -ResourceGroupName $rsTable.resourceGroup -NetworkInterfaceName $rsTable.resourceName -ErrorAction SilentlyContinue -ErrorVariable anyError
+
+}
+
+$routeTable.PSObject.Properties.Remove('')

@@ -23,3 +23,30 @@ function findVMNameWithNICName ([String]$nicName, $inputVMS) {
         }
     }
 }
+
+function resourceKind() {
+    param(
+        [String]$resourceId
+    )
+    Import-Module -Name "D:\PowerShell\PowerShell\AzurePowerShell\dev\library\tools.psm1" -Force
+    $Matches = $null
+    $col = @("module", "resourceKind", "resourceGroup", "resourceName")
+    $resourceTable = MakeTable -TableName "resourceTable" -ColumnArray $col
+    $resourceRegex = $resourceId -match "/resourceGroups/(?<resourceGroup>.+)/providers/(?<module>.+)/(?<resourceKind>.+)/(?<resourceName>.+)"
+    $row = $resourceTable.NewRow()
+    $row.module = $Matches.module
+    $row.resourceKind = $Matches.resourceKind
+    $row.resourceGroup = $Matches.resourceGroup
+    $row.resourceName = $Matches.resourceName                    
+    
+    $resourceTable.Rows.Add($row)
+    <#
+    if(!$resourceRegex) {
+        return 
+    } else {
+        return
+    }
+    #>
+
+    return , @($resourceTable)
+}
