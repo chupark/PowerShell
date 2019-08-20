@@ -4,6 +4,7 @@ param (
     $errLogFileName
 )
 try {
+    # change config file path here------------↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
     $jsonConfig = Get-Content -Raw -Path "D:\PowerShell\config.json" | ConvertFrom-Json
     $user = $jsonConfig.servicePrincipal.user
     $pass = ConvertTo-SecureString -String $jsonConfig.servicePrincipal.pass -AsPlainText -Force
@@ -14,8 +15,9 @@ try {
     $routeTable
     if ($anyError) {
         $errMsg = (Get-Date).ToString() + "`n" + $anyError + "`n"
-        $errMsg >> C:\Users\cwpark\$errLogFileName
+        $errMsg >> D:\PowerShell\PowerShell\AzurePowerShell\dev\Network\EffectiveRouteTable\outputs\logs\$errLogFileName
     }
 } catch {
-    $_.Exception.Message >> C:\Users\cwpark\allError.log
+    $errMsg = (Get-Date).ToString() + "`n" + $_.Exception.Message + "`n"
+    $errMsg >> D:\PowerShell\PowerShell\AzurePowerShell\dev\Network\EffectiveRouteTable\outputs\logs\allError.log
 }

@@ -1,0 +1,9 @@
+{
+    "log" : {
+        "error" : "D:\\PowerShell\\PowerShell\\AzurePowerShell\\dev\\Network\\EffectiveRouteTable\\outputs\\logs\\error\\",
+        "runtime" : ""
+    },
+    "customLog" : {
+        "differentLog" : "D:\\PowerShell\\PowerShell\\AzurePowerShell\\dev\\Network\\EffectiveRouteTable\\outputs\\logs\\diff\\"
+    }
+}

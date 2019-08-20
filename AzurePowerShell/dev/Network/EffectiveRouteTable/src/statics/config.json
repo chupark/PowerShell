@@ -1,0 +1,10 @@
+{
+    "accountBasic" : {
+        "subscription" : "<your-subscription-here>",
+        "tenant" : "<your-tenant-here>"
+    },
+    "servicePrincipal" : {
+        "user" : "<your-app-id-here>",
+        "pass" : "<your-app-password-here>"
+    }
+}
