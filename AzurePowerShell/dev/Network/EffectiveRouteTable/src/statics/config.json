@@ -6,5 +6,8 @@
     "servicePrincipal" : {
         "user" : "<your-app-id-here>",
         "pass" : "<your-app-password-here>"
+    },
+    "log" : {
+        "path" : "D:\\PowerShell\\PowerShell\\AzurePowerShell\\dev\\Network\\EffectiveRouteTable\\src\\statics\\logConfig.json"
     }
 }

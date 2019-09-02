@@ -66,3 +66,29 @@ function sendToBlob() {
                                 -DestBlob $destinationVHDFileName    
     }   
 }
+
+
+<#
+$snapshotResourceGroupName = <스냅샷 리소스 그룹>
+$snapShotName = <스냅샷 이름>
+$sasExpiryDuration = <스냅샷 SAS URL 만료 시간 (초)>
+
+$storageAccountName = <저장소 계정 이름>
+$storageAccountKey = <저장소 계정 Key>
+$destinationVHDFileName = <저장소 계정에 저장될 파일 이름> + ".vhd"
+$storageContainerName = <저장소 계정 컨테이너 이름>
+        
+$sas = Grant-AzSnapshotAccess -ResourceGroupName $snapshotResourceGroupName `
+                              -SnapshotName $snapShotName `
+                              -DurationInSecond $sasExpiryDuration `
+                              -Access Read
+
+$destinationContext = New-AzStorageContext -StorageAccountName $storageAccountName `
+                                           -StorageAccountKey $storageAccountKey
+
+Start-AzStorageBlobCopy -AbsoluteUri $sas.AccessSAS `
+                        -DestContainer $storageContainerName `
+                        -DestContext $destinationContext `
+                        -DestBlob $destinationVHDFileName    
+
+#>

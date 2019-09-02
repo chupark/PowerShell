@@ -3,6 +3,7 @@ param (
     $nicName,
     $errLogFileName
 )
+Import-Module D:\PowerShell\PowerShell\AzurePowerShell\dev\Network\EffectiveRouteTable\src\utility\logger.psm1 -Force
 try {
     # change config file path here------------↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
     $jsonConfig = Get-Content -Raw -Path "D:\PowerShell\config.json" | ConvertFrom-Json
@@ -14,10 +15,9 @@ try {
     $routeTable | Add-Member -MemberType NoteProperty -Name "nicName" -Value $nicName
     $routeTable
     if ($anyError) {
-        $errMsg = (Get-Date).ToString() + "`n" + $anyError + "`n"
-        $errMsg >> D:\PowerShell\PowerShell\AzurePowerShell\dev\Network\EffectiveRouteTable\outputs\logs\$errLogFileName
+        # error --> log.error
+        makeLogFile -logType "log.error" -fileName "error.log" -logMsg $anyError
     }
 } catch {
-    $errMsg = (Get-Date).ToString() + "`n" + $_.Exception.Message + "`n"
-    $errMsg >> D:\PowerShell\PowerShell\AzurePowerShell\dev\Network\EffectiveRouteTable\outputs\logs\allError.log
+    makeLogFile -logType "log.runtime" -fileName "runtime_error.log" -logMsg $_.Exception.Message
 }
