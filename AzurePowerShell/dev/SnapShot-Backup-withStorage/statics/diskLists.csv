@@ -1,0 +1,5 @@
+﻿resourceGroup,vmName,Disk,etc
+D-CH-RG,D-apigw,D-apigw_OsDisk_1_3bee36c8722a45edbbb60a515e897487,
+D-CH-RG,D-apigw,D-apigw-data1,
+D-CH-RG,D-chweb,D-chweb_OsDisk_1_9d92422b186144589015e1258b9d8b62,
+D-CH-RG,D-chweb,D-chweb-Data1,

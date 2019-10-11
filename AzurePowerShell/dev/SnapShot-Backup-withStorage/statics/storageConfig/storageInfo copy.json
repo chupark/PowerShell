@@ -1,0 +1,16 @@
+{
+    "saResourceGroup" : "ManualBackup",
+    "saName" : "pcwmanualbackup",
+    "auth" : {
+        "key1" : "encrypted key"
+    },
+    "destination" : {
+        "saName" : "pcwmanualbackup",
+        "auth" : {
+            "key1" : "encrypted key"
+        },
+        "backup" : {
+            "container" : "backup"
+        }
+    }
+}

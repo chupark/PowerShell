@@ -1,15 +1,15 @@
 # Import Module
 $location = (Get-Location).Path
-Import-module -Name "$location\src\library\tools.psm1"
-
+Import-module -Name D:\PowerShell\PowerShell\AzurePowerShell\dev\PCW-GetAzLoadBalancers\src\library\tools.psm1
 
 # Making Data Table
-$col=@("num", "lbName", "lbKind", "frontEndIP", "backEndPoolName", "backEndPool", "probeRule", "ruleProto", "rulePort")
+$col=@("num", "lbName", "lbKind", "frontEndIP", "backEndPoolName", "backEndPool", "probeRule", "backEndRuleProto", "LoadDistribution", "backEndRulePort")
 $table = MakeTable "test" $col
 
 # Get Row Data
 $lbList = Get-AzLoadBalancer
 $vms=Get-AzVM
+$publicIPs = Get-AzPublicIpAddress
 
 # Output Data
 $exportFileName = "loadBalancer.csv"
@@ -38,19 +38,12 @@ foreach ($lb in $lbList) {
 
     foreach ($lbRule in $lb.LoadBalancingRules) {
         $backendPool = ""
-        $FrontIPId = ($lbRule.FrontendIPConfiguration.Id | Select-String  $lbList.FrontendIpConfigurations.Id).ToString()
-        ## Searching for FrontEndIP
-        foreach ($fronttmp in $lb.FrontendIpConfigurations) {
-            #$fronttmp
-            if ($fronttmp.Id -eq $FrontIPId) {
-                if ($fronttmp.PrivateIpAddress -ne $null) {
-                    $frontEndIP = $fronttmp.PrivateIpAddress
-                } elseif ($fronttmp.PublicIpAddress -ne $null) {
-                    $frontEndIP = $fronttmp.PublicIpAddress
-                } else {
-                    $frontEndIP = $fronttmp.PrivateIpAddress + " : " + $fronttmp.PublicIpAddress
-                }
-            }
+        $frontIP = $lbList.FrontendIpConfigurations | Where-Object {$_.Id -eq $lbRule.FrontendIPConfiguration.Id}
+        if ($frontIP.PublicIpAddress) {
+            $frontPIP = $publicIPs | Where-Object {$_.Id -eq $frontIP.PublicIpAddress.Id}
+            $frontEndIP = $frontPIP.IpAddress
+        } elseif ($frontIP.PrivateIpAddress) {
+            $frontEndIP = $frontIP.PrivateIpAddress
         }
 
         foreach ($lbBackEndId in $lb.BackendAddressPools) {
@@ -71,7 +64,6 @@ foreach ($lb in $lbList) {
 
         $ruleProtocol = $lbRule.Protocol
         $rulePort = [String]$lbRule.FrontendPort + " => " + [String]$lbRule.BackendPort
-        
         $row = $table.NewRow()
         $row.num = $countnum
         $row.lbName = $lbName
@@ -80,8 +72,9 @@ foreach ($lb in $lbList) {
         $row.backEndPoolName = $lbBackEndName
         $row.backEndPool = $backendPool
         $row.probeRule= $probeRule
-        $row.ruleProto = $ruleProtocol
-        $row.rulePort = $rulePort
+        $row.backEndRuleProto = $ruleProtocol
+        $row.LoadDistribution = $lbRule.LoadDistribution
+        $row.backEndRulePort = $rulePort
         $table.Rows.Add($row)
 
         $countnum++

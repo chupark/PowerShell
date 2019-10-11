@@ -102,7 +102,7 @@ $snapshotTable = makeSnapShotTable -snapshotNames $snapShotNames
 ## Send Snapshots To Blob
 sendToBlob -snapshotTable $snapshotTable -destinationBlobInfo $storageConfig
 $storageContext = New-AzStorageContext -StorageAccountName $storageConfig.storageAccountName -StorageAccountKey $storageConfig.storageAccountKey
-$blobCopyStates = Get-AzStorageBlob -Context $storageContext -Container $storageConfig.storageContainerName | Get-AzStorageBlobCopyState
+Get-AzStorageBlob -Context $storageContext -Container $storageConfig.storageContainerName | Get-AzStorageBlobCopyState -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
 
 <#
 foreach ($blobCopyState in $blobCopyStates) {
