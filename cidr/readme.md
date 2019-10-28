@@ -47,4 +47,12 @@ $cidr = getCidrCalculator
 # ip 대입
 $cidr.setCidr("10.0.0.1/30")
 ````
-이후 Class내의 함수를 사용하여 여러 데이터 추출.
+이후 Class내의 함수를 사용하여 여러 데이터 추출.<br/>
+
+## 비교
+CIDR 계산기를 제공해주는 사이트와 비교
+![Alt text](https://github.com/chupark/PowerShell/blob/master/cidr/img/1.png "Optional title")
+
+<br/>
+
+![Alt text](https://github.com/chupark/PowerShell/blob/master/cidr/img/2.png "Optional title")
