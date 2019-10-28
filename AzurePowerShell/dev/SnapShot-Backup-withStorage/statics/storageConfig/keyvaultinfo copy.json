@@ -1,0 +1,7 @@
+{
+    "name" : "vaultName",
+    "resourceGroup" : "vaultRG",
+    "secret" : {
+        "name" : "manualBackupKey"
+    }
+}

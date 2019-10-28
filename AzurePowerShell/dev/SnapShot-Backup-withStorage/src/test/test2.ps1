@@ -49,29 +49,15 @@ Get-Job | Wait-Job
 $snapshotTools.setTable("sas")
 $encryptedSASs = $snapshotTools.selectByTableName()
 
-
 $param = ("encryptedSAS,Etag,PartitionKey,resourceGroup,resourceType,RowKey,TableTimestamp,vmName").Split(",")
 $validator.setParameters($param)
-$validator.setInputParameters($encryptedSASs[0])
+$validator.setInputParameters($encryptedSAS[0])
+
 if (!$validator.validation($validator.getInputParameters())){
     return
 } else {
 
 }
-
-
-$snapshotTools.setTable("savedLists")
-$snapshotTools.setDestinationContext()
-$snapshotTools.snapshotSendToBlob($encryptedSASs)
-do {
-    $pending = $snapshotTools.getBlobCopyState()
-    Write-Host Copy Job Remains $pending -ForegroundColor Green
-    Start-Sleep -Seconds 1
-    if ($pending -eq 0) {
-        Write-Host All
-    }
-} while($pending -ne 0)
-
 
 $snapshotTools.setTable("savedLists")
 $snapshotTools.setDestinationContext()
@@ -89,28 +75,15 @@ if($pending -eq 0) {
 }
 Get-Job | Wait-Job
 
-
-$param = ("encryptedSAS,Etag,PartitionKey,resourceGroup,resourceType,RowKey,TableTimestamp,vmName").Split(",")
-$validator.setParameters($param)
-$validator.setInputParameters($encryptedSAS[0])
-
-if (!$validator.validation($validator.getInputParameters())){
-    return
-} else {
-
-}
-
-$beforeDate = (Get-Date).AddDays(-28)
-
 $snapshotTools.setTable("savedLists")
-$oldDatas = $snapshotTools.selectByDateBefore($beforeDate)
+$oldDatas = $snapshotTools.selectByDateBefore($tdy)
 $snapshotTools.setMadenSnapshot()
 $snapshotTools.removeSnapshotLock($programEnv)
+
 foreach ($oldData in $oldDatas) {
     Start-Job -FilePath D:\PowerShell\PowerShell\AzurePowerShell\dev\SnapShot-Backup-withStorage\src\launch\removeSnapshot.ps1 -ArgumentList $oldData, $programEnv, $secretKey
 }
 Get-Job | Wait-Job
-
 
 $snapshotTools.setTable("sas")
 $snapshotTools.selectByTableName()
@@ -120,4 +93,4 @@ $snapshotTools.selectByTableName()
 $snapshotTools.deleteByTableName()
 $snapshotTools.setTable("savedLists")
 $snapshotTools.selectByTableName()
-$snapshotTools.deleteByDateBefore($beforeDate)
+$snapshotTools.deleteByDateBefore($tdy)

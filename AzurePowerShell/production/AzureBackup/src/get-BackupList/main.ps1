@@ -44,3 +44,5 @@ foreach ($vault in $vaults) {
 
 $redundancy = Get-AzRecoveryServicesBackupProperties -Vault $vault
 $backupListTable | Export-Csv "backupVMs.csv" -NoTypeInformation
+
+$backupListTable

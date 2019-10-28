@@ -56,10 +56,12 @@ foreach($dataDisks in $selectedVM.StorageProfile.DataDisks) {
 }
 $inputSelectDataDisk = Read-Host "Select "
 
+if($inputSelectDataDisk) {
 $diskLUNs = $inputSelectDataDisk.Replace(" ", "").Split(',')
-foreach($diskLUN in $diskLUNs) {
-    Write-Host A snapshot of the $selectedVM.StorageProfile.DataDisks[$diskLUN].Name will be taken. -ForegroundColor Yellow
-    $diskNamesForSnapshot += $selectedVM.StorageProfile.DataDisks[$diskLUN].Name
+    foreach($diskLUN in $diskLUNs) {
+        Write-Host A snapshot of the $selectedVM.StorageProfile.DataDisks[$diskLUN].Name will be taken. -ForegroundColor Yellow
+        $diskNamesForSnapshot += $selectedVM.StorageProfile.DataDisks[$diskLUN].Name
+    }
 }
 
 
@@ -86,12 +88,6 @@ $takeSnapShot = Read-Host " "
 
 
 if ($takeSnapShot -eq "y") {
-    ## Taking Managed Disk Snapshots
-    <#
-    @@ param [array] DiskNames, 
-             [object] AzureVM,
-             [String] SnapshotResourceGroup
-    #>
     $snapShotNames = makeSnapshot $diskNamesForSnapshot $selectedVM $snapshotResourceGroupName
 } else {
     return
@@ -102,7 +98,14 @@ $snapshotTable = makeSnapShotTable -snapshotNames $snapShotNames
 ## Send Snapshots To Blob
 sendToBlob -snapshotTable $snapshotTable -destinationBlobInfo $storageConfig
 $storageContext = New-AzStorageContext -StorageAccountName $storageConfig.storageAccountName -StorageAccountKey $storageConfig.storageAccountKey
-Get-AzStorageBlob -Context $storageContext -Container $storageConfig.storageContainerName | Get-AzStorageBlobCopyState -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+$pending = Get-AzStorageBlob -Context $storageContext -Container $storageConfig.storageContainerName | Get-AzStorageBlobCopyState -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+
+do {
+    $pending = Get-AzStorageBlob -Context $storageContext -Container $storageConfig.storageContainerName | Get-AzStorageBlobCopyState -ErrorAction SilentlyContinue -WarningAction SilentlyContinue
+    $copyState = $pending.Status | Where-Object {$_ -eq "Pending"}
+    Write-Host $copyState.Count
+    Start-Sleep -Seconds 5
+} while ($copyState)
 
 <#
 foreach ($blobCopyState in $blobCopyStates) {

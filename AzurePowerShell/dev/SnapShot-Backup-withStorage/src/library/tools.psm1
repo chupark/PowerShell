@@ -23,3 +23,33 @@ function findVMNameWithNICName ([String]$nicName, $inputVMS) {
         }
     }
 }
+
+function createResourceLock() {
+    param (
+        [PSCustomObject]$programEnv,
+        [PSCustomObject]$resourceList
+    )
+    foreach ($resource in $resourceList) {
+        New-AzResourceLock -LockLevel CanNotDelete `
+                           -LockName $programEnv.lock.name `
+                           -ResourceName $resource.RowKey `
+                           -ResourceType $resource.Type `
+                           -ResourceGroupName $resource.resourceGroup `
+                           -LockNotes $programEnv.lock.note `
+                           -Force
+    }
+}
+
+function removeRemoveLock() {
+    param (
+        [PSCustomObject]$programEnv,
+        [PSCustomObject]$resourceList
+    )
+    foreach ($resource in $resourceList) {
+        Remove-AzResourceLock -LockName $programEnv.lock.name `
+                              -ResourceName $resource.RowKey `
+                              -ResourceType $resource.Type `
+                              -ResourceGroupName $resource.resourceGroup `
+                              -Force
+    }
+}

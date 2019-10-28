@@ -1,7 +1,25 @@
+<#
+.SYNOPSIS
+VM 이름과 Disk 이름을 생성하는 테이블을 만듬
+
+.DESCRIPTION
+Long description
+
+.PARAMETER vms
+[PSCustomObject] Get-AzVM 이 들어옴
+
+.EXAMPLE
+vmNameMatchedWithDisk -$vms (Get-AzVM)
+
+.NOTES
+General notes
+#>
+
 function vmNameMatchedWithDisk() {
     param (
         [PSCustomObject]$vms
     )
+    Import-Module D:\PowerShell\PowerShell\AzurePowerShell\dev\SnapShot-Backup-withStorage\src\library\tools.psm1 -Force
     $col = @("vmName", "Disk")
     $table = MakeTable -TableName "vm-disk" -ColumnArray $col
     foreach ($vm in $vms ){
@@ -22,6 +40,26 @@ function vmNameMatchedWithDisk() {
     return ,$table
 }
 
+<#
+.SYNOPSIS
+Storage Account Table Storage로부터 백업할 Disk 정보를 받아옴
+
+.DESCRIPTION
+Long description
+
+.PARAMETER storageConfig
+storageConfig.json 정보를 읽음
+
+.PARAMETER programEnv
+env.json 정보를 읽음
+
+.EXAMPLE
+getBackupItems -storageConfig $storageConfig -programEnv $env
+$backupDiskLists output은 createDiskSnapshot.ps1 에서 사용할 변수
+
+.NOTES
+General notes
+#>
 function getBackupItems() {
     param (
         [Object]$storageConfig,
@@ -63,6 +101,23 @@ function createDiskSnapshot() {
 }
 #>
 
+
+<#
+.SYNOPSIS
+
+
+.DESCRIPTION
+Long description
+
+.PARAMETER backedupDiskLists
+Parameter description
+
+.EXAMPLE
+An example
+
+.NOTES
+General notes
+#>
 function getMadenSnapshot() {
     param (
         [PSCustomObject]$backedupDiskLists
@@ -87,7 +142,8 @@ function snapshotSendToBlob() {
     param(
         [PSCustomObject]$encryptedSASs,
         [PSCustomObject]$storageConfig,
-        [PSCustomObject]$vmNameMatchedWithDisk
+        [PSCustomObject]$vmNameMatchedWithDisk,
+        [PSCustomObject]$secretKey
     )
     $sa = Get-AzStorageAccount -ResourceGroupName $storageConfig.saResourceGroup -StorageAccountName $storageConfig.saName
     $saContext = $sa.Context
@@ -96,12 +152,12 @@ function snapshotSendToBlob() {
 
     foreach ($encryptedSAS in $encryptedSASs) {
         $Matches = $null
-        $bb = ConvertTo-SecureString $encryptedSAS.encryptedSAS -Key (1..32)
+        $bb = ConvertTo-SecureString $encryptedSAS.encryptedSAS -Key $secretKey
         $SASBSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($bb)
         $sasURI = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($SASBSTR)
 
         $storageAccountName = $storageConfig.destination.saName
-        $encryptedSAkey = ConvertTo-SecureString $storageConfig.destination.auth.key1 -Key (1..32)
+        $encryptedSAkey = ConvertTo-SecureString $storageConfig.destination.auth.key1 -Key $secretKey
         $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($encryptedSAkey)
         $storageAccountKey = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
         $destinationVHDFileName = $encryptedSAS.RowKey + ".vhd"
@@ -113,11 +169,13 @@ function snapshotSendToBlob() {
         $containerName = $storageConfig.destination.backup.container
         $snapshotName = $encryptedSAS.RowKey
         $resourceGroup = $encryptedSAS.resourceGroup
+        $destinationBlobUrl = $destinationContext.BlobEndPoint + $containerName
+        $resourceType = encryptedSASs.resourceType
         Add-AzTableRow `
         -table $savedLists `
         -partitionKey "$vmName" `
         -rowKey ("$snapshotName") `
-        -property @{"vhdFile"="$destinationVHDFileName"; "resourceGroup"="$resourceGroup";}
+        -property @{"vhdFile"="$destinationVHDFileName"; "resourceGroup"="$resourceGroup"; "storageAccount"="$storageAccountName"; "container"="$containerName"; "backupBlobUrl"="$destinationBlobUrl"; "resourceType"="$resourceType";}
 
         Start-AzStorageBlobCopy -AbsoluteUri $sasURI `
                                 -DestContainer $containerName `
@@ -131,7 +189,7 @@ function checkTransationStatus() {
         [PSCustomObject]$storageConfig
     )
     $storageAccountName = $storageConfig.destination.saName
-    $encryptedSAkey = ConvertTo-SecureString $storageConfig.destination.auth.key1 -Key (1..32)
+    $encryptedSAkey = ConvertTo-SecureString $storageConfig.destination.auth.key1 -Key $secretKey
     $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($encryptedSAkey)
     $storageAccountKey = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
     $destinationContext = New-AzStorageContext -StorageAccountName $storageAccountName -StorageAccountKey $storageAccountKey
@@ -143,6 +201,36 @@ function checkTransationStatus() {
     } while ($pending)
 
     return $pending
+}
+
+function createSnapshotLock() {
+    param (
+        [PSCustomObject]$programEnv,
+        [PSCustomObject]$encryptedSASs
+    )
+    foreach ($resource in $encryptedSASs) {
+        New-AzResourceLock -LockLevel CanNotDelete `
+                           -LockName $programEnv.lock.name `
+                           -ResourceName $resource.RowKey `
+                           -ResourceType $resource.resourceType `
+                           -ResourceGroupName $resource.resourceGroup `
+                           -LockNotes $programEnv.lock.note `
+                           -Force
+    }
+}
+
+function removeSnapshotLock() {
+    param (
+        [PSCustomObject]$programEnv,
+        [PSCustomObject]$encryptedSASs
+    )
+    foreach ($resource in $encryptedSASs) {
+        Remove-AzResourceLock -LockName $programEnv.lock.name `
+                              -ResourceName $resource.RowKey `
+                              -ResourceType $resource.resourceType `
+                              -ResourceGroupName $resource.resourceGroup `
+                              -Force
+    }
 }
 
 <#

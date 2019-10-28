@@ -6,14 +6,19 @@ function makeSnapshot() {
     )
     $diskLists = @()
     foreach ($inputDiskName in $inputDiskNames) {
+        
         $diskSnapShotName = "BackupSnapshot-" + $vm.Name + "-" + $inputDiskName + "-" + (Get-Date -Format "yyyy-MM-dd")
+        if($diskSnapShotName -match "P-cpbxmgr") {
+            $aa = $zxcv -match "(?<prefix>.+)_[a-zA-Z0-9]{0,100}-(?<end>.+)"
+            $diskSnapShotName = $Matches.prefix + "_" + $Matches.end
+        }
         $sourceDisk = Get-AzDisk -ResourceGroupName $vm.ResourceGroup -DiskName $inputDiskName
         $diskSnapshotConfig = New-AzSnapshotConfig -SourceUri $sourceDisk.Id -Location $sourceDisk.Location -CreateOption copy
         $diskSnapshot = New-AzSnapshot -SnapshotName $diskSnapShotName -Snapshot $diskSnapshotConfig -ResourceGroupName $snapshotResourceGroupName
         $diskLists += $diskSnapShotName
     }
 
-    return $diskLists
+    return ,$diskLists
 }
 
 
@@ -39,6 +44,26 @@ function makeSnapShotTable() {
     return ,@($snapshotTable)
 }
 
+function generateSAS() {
+    param (
+        [PSCustomObject]$snapshotTable,
+        [Object]$destinationBlobInfo
+    )
+    [Array]$sas = @()
+    foreach ($snapshotBlob in $snapshotTable) {
+        $snapshotResourceGroupName = $snapshotBlob.ResourceGroupName
+        $snapShotName = $snapshotBlob.SnapShotName
+        $storageAccountName = $destinationBlobInfo.storageAccountName
+        $storageAccountKey = $destinationBlobInfo.storageAccountKey
+        $destinationVHDFileName = $snapshotBlob.SnapShotName + ".vhd"
+                
+        $sas += Grant-AzSnapshotAccess -ResourceGroupName $snapshotResourceGroupName `
+                                      -SnapshotName $snapShotName `
+                                      -DurationInSecond $destinationBlobInfo.sasExpiryDuration `
+                                      -Access Read
+    }
+    return ,$sas
+}
 
 function sendToBlob() {
     param(
