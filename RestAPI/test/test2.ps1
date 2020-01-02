@@ -1,4 +1,5 @@
 $OutputEncoding = [System.Text.Encoding]::UTF8
+# https://docs.microsoft.com/ko-kr/dotnet/api/system.net.httplistener.authenticationschemes?view=netframework-4.8
 # Create a listener on port 8000
 $listener = New-Object System.Net.HttpListener
 $listener.Prefixes.Add('http://localhost:8000/') 
@@ -15,12 +16,19 @@ while ($true) {
         $response = $context.Response
         $message = '{"end" : "end"}'
         if ($request.HttpMethod.ToString() -match "POST") {
+            # Get-Headers
+            foreach ($headers in $request.Headers) {
+                Write-Host Header : $headers // Value : $request.Headers.GetValues($headers)
+            }
+            $listener.AuthenticationSchemes
+
+            
+
             if ($request.Url -match '/$') { 
                 $streamReader = [System.IO.StreamReader]::new($request.InputStream)
                 $parsing = $streamReader.ReadToEnd() | ConvertFrom-json
+                Write-Host $parsing
                 Write-Host "Event ID : " $parsing.Events.EventId 
-                Write-Host "Affected VM :" $parsing.Events.Resources
-                Write-Host "Start Time : " $parsing.Events.NotBefore
                 $response.ContentType = 'application/json'
                 $message = '{"200" : "ok"}' 
             } elseif ($request.Url -match '/end$') {
@@ -33,7 +41,7 @@ while ($true) {
             $message = '{"404" : "no pages"}'
         }
     } catch {
-
+        Write-Host "Error"
     } finally {
         # Convert the data to UTF8 bytes
         Write-Host $message
@@ -47,7 +55,6 @@ while ($true) {
         $output.Write($buffer, 0, $buffer.length)
         $output.Close()
     }
+    $listener.Stop()
 }
  
-#Terminate the listener
-$listener.Stop()

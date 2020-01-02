@@ -43,6 +43,39 @@ foreach ($vault in $vaults) {
 }
 
 $redundancy = Get-AzRecoveryServicesBackupProperties -Vault $vault
-$backupListTable | Export-Csv "backupVMs.csv" -NoTypeInformation
+$backupListTable | Export-Csv "backupVMs.csv"
 
-$backupListTable
+
+
+$vms = Get-AzVM | Where-Object {$_.Tags.Keys -eq "backup"} | Where-Object {$_.Tags.Values -eq "snapshot"}
+$col2 = @(
+    "vaultName",
+    "redundancy",
+    "vmResourceGroup",
+    "vmName",
+    "scheduleFrequency",
+    "scheduleRunDays",
+    "dataRetention"
+    "backupPolicyName"
+)
+$table2 = makeTable -TableName "snapshotBackup" -ColumnArray $col2
+foreach ($vm in $vms) {
+    $Matches = $null
+    if ($vm.Name.StartsWith("D-")) {
+        $redundancy = "LocallyRedundant"
+    } else {
+        $redundancy = "GeoRedundant"
+    }
+    $row = $table2.NewRow()
+    $row.vaultName = "none"
+    $row.redundancy = $redundancy
+    $row.vmResourceGroup = $vm.ResourceGroupName
+    $row.vmName = $vm.Name
+    $row.scheduleFrequency = "When changing"
+    $row.scheduleRunDays = "When changing"
+    $row.dataRetention = "At the next backup"
+    $row.backupPolicyName = "none"
+    $table2.Rows.Add($row)
+}
+
+$table2 | Export-Csv "backupVMs.csv" -Append

@@ -1,5 +1,6 @@
 Import-Module -Name D:\PowerShell\PowerShell\AzurePowerShell\production\AzureBackup\src\library\tools.psm1 -Force
 
+
 $ipRanges = Get-Content -Raw D:\PowerShell\PowerShell\AzurePowerShell\production\AzureIPRanges\statics\ServiceTags_Public_20190617.json | ConvertFrom-Json
 
 $col = @(
@@ -27,3 +28,24 @@ foreach ($ipRange in $ipRanges.values) {
 }
 
 $table | Export-Csv "azureIpRanges.csv" -NoTypeInformation
+
+Import-Module -Name D:\PowerShell\study\cidr\cidr.psm1 -Force
+$cidr = getCidrCalculator
+$azADs = $table | Where-Object {$_.name -eq "AzureActiveDirectory"}
+
+[Array]$cidrArr = $null
+foreach ($azAD in $azADs.addressPrefix) {
+    $cidr.setCidr($azAD)
+    $cidr.calculationCidr()
+    $cidrArr += $cidr.cidrRange
+}
+
+
+$col = @("ip")
+$table2 = makeTable -TableName "azureAD" -ColumnArray $col
+foreach ($a in $cidrArr) {
+    $row = $table2.NewRow()
+    $row.ip = $a
+    $table2.Rows.Add($row)
+}
+$table2 | Export-CSV "azureAD2.csv"
